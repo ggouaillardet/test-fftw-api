@@ -1,0 +1,38 @@
+#!/bin/bash
+# Set some default values:
+
+usage()
+{
+  echo "Usage: configure --with-fftw={fftw,fftpack} --with-blas={ssl2,default} --prefix=<prefix>"
+  exit 2
+}
+
+PARSED_ARGUMENTS=$(getopt -a -n test-fftw-api --long with-fftw:,with-blas:,prefix: -- test-fftw-api "$@")
+VALID_ARGUMENTS=$?
+if [ "$VALID_ARGUMENTS" != "0" ]; then
+  usage
+fi
+
+eval set -- "$PARSED_ARGUMENTS"
+while :
+do
+  case "$1" in
+    --with-fftw) FFTW="$2" ; shift 2 ;;
+    --with-blas) BLAS="$2"   ; shift 2 ;;
+    --prefix) PREFIX="$2"    ; shift 2 ;;
+    # -- means the end of the arguments; drop this, and break out of the while loop
+    --) shift; break ;;
+    # If invalid options were passed, then getopt should have reported an error,
+    # which we checked as VALID_ARGUMENTS when getopt was called...
+    *) echo "Unexpected option: $1 - this should not happen."
+       usage ;;
+  esac
+done
+
+cat > Makefile << EOF
+all:
+	@echo building with $FFTW and $BLAS
+
+install:
+	echo "FFTW=$FFTW BLAS=$BLAS" > $PREFIX/dummy.txt
+EOF
